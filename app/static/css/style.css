@@ -1,0 +1,436 @@
+/* OSINT Reconnaissance Automation Tool - Dashboard styling
+   Vanilla CSS only (no framework), Grid/Flexbox based, responsive. */
+
+* {
+    box-sizing: border-box;
+}
+
+/* Elements that use display:flex/grid/etc. when shown would otherwise
+   override the browser's default [hidden] { display: none } styling
+   (equal specificity, author rule wins). This restores correct
+   show/hide behavior for every element toggled via the hidden
+   attribute (loading indicator, dashboard grid, download buttons, etc). */
+[hidden] {
+    display: none !important;
+}
+
+body {
+    font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+    background-color: #eef0f4;
+    color: #1f2430;
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+}
+
+header {
+    background-color: #1a1a2e;
+    color: #ffffff;
+    padding: 24px 20px;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0 0 4px 0;
+    font-size: 1.6em;
+}
+
+header .tagline {
+    margin: 0;
+    font-size: 0.9em;
+    color: #b9bcd6;
+}
+
+main {
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 0 16px 40px;
+}
+
+/* ---------------------------------------------------------------- */
+/* Domain input form                                                 */
+/* ---------------------------------------------------------------- */
+
+.recon-form {
+    background-color: #ffffff;
+    padding: 20px;
+    border: 1px solid #dfe2ea;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(20, 20, 40, 0.06);
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.recon-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.recon-form input[type="text"] {
+    width: 100%;
+    max-width: 420px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+    border: 1px solid #ccd0dc;
+    border-radius: 6px;
+    font-size: 1em;
+    display: block;
+}
+
+.recon-form button {
+    padding: 10px 20px;
+    background-color: #1a1a2e;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+}
+
+.recon-form button:hover {
+    background-color: #333366;
+}
+
+/* ---------------------------------------------------------------- */
+/* Loading indicator                                                  */
+/* ---------------------------------------------------------------- */
+
+.loading-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: #ffffff;
+    border: 1px solid #dfe2ea;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+
+.spinner {
+    width: 22px;
+    height: 22px;
+    border: 3px solid #d9dcea;
+    border-top-color: #1a1a2e;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.scan-message {
+    background-color: #ffffff;
+    border: 1px solid #dfe2ea;
+    border-left: 4px solid #1a1a2e;
+    border-radius: 6px;
+    padding: 10px 16px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.scan-message.error {
+    border-left-color: #b3261e;
+    color: #8a1c16;
+}
+
+/* ---------------------------------------------------------------- */
+/* Download buttons                                                   */
+/* ---------------------------------------------------------------- */
+
+.download-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.btn-download {
+    display: inline-block;
+    padding: 10px 18px;
+    background-color: #22314f;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.95em;
+}
+
+.btn-download:hover {
+    background-color: #35456b;
+}
+
+/* ---------------------------------------------------------------- */
+/* Dashboard grid layout                                              */
+/* ---------------------------------------------------------------- */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.dashboard-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.card-full {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 800px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------------------------------------------------------------- */
+/* Card component                                                     */
+/* ---------------------------------------------------------------- */
+
+.card {
+    background-color: #ffffff;
+    border: 1px solid #dfe2ea;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(20, 20, 40, 0.06);
+    overflow: hidden;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid #eceef3;
+    background-color: #f8f9fc;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.05em;
+    color: #1a1a2e;
+}
+
+.card-body {
+    padding: 16px 18px 18px;
+}
+
+.card-message {
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background-color: #f4f4f7;
+    color: #444;
+    font-size: 0.92em;
+}
+
+/* ---------------------------------------------------------------- */
+/* Status badges                                                      */
+/* ---------------------------------------------------------------- */
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75em;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.status-badge.status-ok {
+    background-color: #e3f6e9;
+    color: #1e7a3d;
+}
+
+.status-badge.status-empty {
+    background-color: #eef1f8;
+    color: #445077;
+}
+
+.status-badge.status-error {
+    background-color: #fbe9e7;
+    color: #a3341f;
+}
+
+/* ---------------------------------------------------------------- */
+/* Summary card                                                       */
+/* ---------------------------------------------------------------- */
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    background-color: #f8f9fc;
+    border: 1px solid #eceef3;
+    border-radius: 8px;
+}
+
+.summary-label {
+    font-size: 0.78em;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #6b7290;
+    font-weight: 700;
+}
+
+.summary-value {
+    font-size: 1.02em;
+    color: #1a1a2e;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+/* ---------------------------------------------------------------- */
+/* Data tables                                                        */
+/* ---------------------------------------------------------------- */
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid #eef0f5;
+    vertical-align: top;
+    font-size: 0.94em;
+    line-height: 1.5;
+}
+
+.data-table th {
+    width: 38%;
+    color: #45507a;
+    font-weight: 600;
+    padding-right: 20px;
+}
+
+/* Scrollable block for long DNS values (SPF/DMARC/TXT records, etc.) */
+.dns-scroll-block {
+    max-height: 90px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+    padding: 6px 8px;
+    background-color: #f8f9fc;
+    border: 1px solid #eceef3;
+    border-radius: 6px;
+    font-family: "Courier New", monospace;
+    font-size: 0.85em;
+}
+
+/* Name server list */
+.ns-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.ns-list li {
+    padding: 4px 0;
+    word-break: break-all;
+}
+
+/* ---------------------------------------------------------------- */
+/* Result lists (emails, subdomains, social)                          */
+/* ---------------------------------------------------------------- */
+
+.result-list {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.result-list li {
+    padding: 3px 0;
+    word-break: break-all;
+}
+
+.social-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.social-btn {
+    display: inline-block;
+    padding: 10px 22px;
+    background-color: #22314f;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.95em;
+    text-align: center;
+    flex: 1 1 auto;
+    min-width: 110px;
+}
+
+.social-btn:hover {
+    background-color: #35456b;
+}
+
+.count-line {
+    margin: 0 0 8px 0;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.subdomain-list {
+    columns: 2;
+    column-gap: 24px;
+}
+
+@media (max-width: 600px) {
+    .subdomain-list {
+        columns: 1;
+    }
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.pagination-controls button {
+    padding: 6px 14px;
+    border: 1px solid #ccd0dc;
+    background-color: #f8f9fc;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.pagination-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+    background-color: #eceef3;
+}
+
+#subdomain-page-indicator {
+    font-size: 0.9em;
+    color: #45507a;
+}

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Full Report - OSINT Reconnaissance Automation Tool{% endblock %}
+
+{% block content %}
+    <section class="recon-form">
+        <form method="get" action="{{ url_for('main.report_route') }}">
+            <label for="domain">Enter Domain:</label>
+            <input type="text" id="domain" name="domain" placeholder="example.com" value="{{ domain or '' }}">
+            <button type="submit">Generate Report</button>
+        </form>
+    </section>
+
+    {% if report %}
+    <section class="results">
+        <h2>Full Reconnaissance Report: {{ report.domain }}</h2>
+        <p>
+            <a href="{{ url_for('main.report_download_route', domain=report.domain) }}">
+                Download JSON Report
+            </a>
+        </p>
+    </section>
+
+    <section class="results">
+        <h2>WHOIS</h2>
+        {% if report.whois.error %}
+            <p>{{ report.whois.error }}</p>
+        {% else %}
+        <table>
+            <tbody>
+                <tr><th>Registrar</th><td>{{ report.whois.registrar | format_value }}</td></tr>
+                <tr><th>Creation Date</th><td>{{ report.whois.creation_date | format_value }}</td></tr>
+                <tr><th>Expiry Date</th><td>{{ report.whois.expiry_date | format_value }}</td></tr>
+                <tr><th>Organization</th><td>{{ report.whois.organization | format_value }}</td></tr>
+                <tr><th>Country</th><td>{{ report.whois.country | format_value }}</td></tr>
+                <tr><th>Name Servers</th><td>{{ report.whois.name_servers | format_value }}</td></tr>
+            </tbody>
+        </table>
+        {% endif %}
+    </section>
+
+    <section class="results">
+        <h2>DNS</h2>
+        {% if report.dns.error %}
+            <p>{{ report.dns.error }}</p>
+        {% else %}
+        <table>
+            <tbody>
+                <tr><th>A</th><td>{{ report.dns.A | format_value }}</td></tr>
+                <tr><th>AAAA</th><td>{{ report.dns.AAAA | format_value }}</td></tr>
+                <tr><th>MX</th><td>{{ report.dns.MX | format_value }}</td></tr>
+                <tr><th>TXT</th><td>{{ report.dns.TXT | format_value }}</td></tr>
+                <tr><th>NS</th><td>{{ report.dns.NS | format_value }}</td></tr>
+                <tr><th>CNAME</th><td>{{ report.dns.CNAME | format_value }}</td></tr>
+                <tr><th>SOA</th><td>{{ report.dns.SOA | format_value }}</td></tr>
+            </tbody>
+        </table>
+        {% endif %}
+    </section>
+
+    <section class="results">
+        <h2>Subdomains</h2>
+        {% if report.subdomains.error %}
+            <p>{{ report.subdomains.error }}</p>
+        {% elif report.subdomains.subdomains %}
+        <ul>
+            {% for sub in report.subdomains.subdomains %}
+            <li>{{ sub }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No subdomains found.</p>
+        {% endif %}
+    </section>
+
+    <section class="results">
+        <h2>Emails</h2>
+        {% if report.email.error %}
+            <p>{{ report.email.error }}</p>
+        {% elif report.email.emails %}
+        <ul>
+            {% for address in report.email.emails %}
+            <li>{{ address }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No emails found.</p>
+        {% endif %}
+    </section>
+
+    <section class="results">
+        <h2>SSL Certificate (Certificate Transparency)</h2>
+        {% if report.ssl.error %}
+            <p>{{ report.ssl.error }}</p>
+        {% else %}
+        <table>
+            <tbody>
+                <tr><th>Common Name</th><td>{{ report.ssl.common_name | format_value }}</td></tr>
+                <tr><th>Issuer</th><td>{{ report.ssl.issuer | format_value }}</td></tr>
+                <tr><th>Valid From</th><td>{{ report.ssl.valid_from | format_value }}</td></tr>
+                <tr><th>Valid Until</th><td>{{ report.ssl.valid_until | format_value }}</td></tr>
+            </tbody>
+        </table>
+        {% endif %}
+    </section>
+
+    <section class="results">
+        <h2>Shodan</h2>
+        {% if report.shodan.error %}
+            <p>{{ report.shodan.error }}</p>
+        {% else %}
+        <table>
+            <tbody>
+                <tr><th>IP</th><td>{{ report.shodan.ip | format_value }}</td></tr>
+                <tr><th>ISP</th><td>{{ report.shodan.isp | format_value }}</td></tr>
+                <tr><th>Organization</th><td>{{ report.shodan.organization | format_value }}</td></tr>
+                <tr><th>Open Ports</th><td>{{ report.shodan.open_ports | format_value }}</td></tr>
+                <tr><th>Operating System</th><td>{{ report.shodan.operating_system | format_value }}</td></tr>
+            </tbody>
+        </table>
+        {% endif %}
+    </section>
+
+    <section class="results">
+        <h2>Social Footprint</h2>
+        {% if report.social.error %}
+            <p>{{ report.social.error }}</p>
+        {% else %}
+        <ul>
+            <li><a href="{{ report.social.linkedin }}" target="_blank" rel="noopener">LinkedIn Search</a></li>
+            <li><a href="{{ report.social.github }}" target="_blank" rel="noopener">GitHub Search</a></li>
+            <li><a href="{{ report.social.twitter }}" target="_blank" rel="noopener">Twitter Search</a></li>
+            <li><a href="{{ report.social.facebook }}" target="_blank" rel="noopener">Facebook Search</a></li>
+        </ul>
+        {% endif %}
+    </section>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Home - OSINT Reconnaissance Automation Tool{% endblock %}
+
+{% block content %}
+    <section class="recon-form">
+        <label for="domain">Enter Domain:</label>
+        <input type="text" id="domain" name="domain" placeholder="example.com">
+        <button id="start-recon-btn" type="button">Start Recon</button>
+    </section>
+
+    <div id="loading-indicator" class="loading-indicator" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <p id="loading-text">Running reconnaissance scan...</p>
+    </div>
+
+    <p id="scan-message" class="scan-message" hidden></p>
+
+    <div id="download-buttons" class="download-buttons" hidden>
+        <a id="download-html-btn" class="btn-download" href="#">Download HTML Report</a>
+        <a id="download-pdf-btn" class="btn-download" href="#">Download PDF Report</a>
+    </div>
+
+    <div id="dashboard" class="dashboard-grid" hidden>
+
+        <!-- OSINT Summary: full width -->
+        <div class="card card-full" id="summary-card">
+            <div class="card-header">
+                <h2>OSINT Summary</h2>
+            </div>
+            <div class="card-body">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <span class="summary-label">Target Domain</span>
+                        <span class="summary-value" id="sum-domain">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Resolved IP</span>
+                        <span class="summary-value" id="sum-ip">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Registrar</span>
+                        <span class="summary-value" id="sum-registrar">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Country</span>
+                        <span class="summary-value" id="sum-country">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">SSL Status</span>
+                        <span class="summary-value" id="sum-ssl-status">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Shodan Status</span>
+                        <span class="summary-value" id="sum-shodan-status">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Total Subdomains Found</span>
+                        <span class="summary-value" id="sum-subdomain-count">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Total Emails Found</span>
+                        <span class="summary-value" id="sum-email-count">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Left column -->
+        <div class="dashboard-col">
+            <div class="card" id="whois-card">
+                <div class="card-header">
+                    <h2>WHOIS</h2>
+                    <span class="status-badge" id="whois-status-badge"></span>
+                </div>
+                <div class="card-body">
+                    <p class="card-message" id="whois-message" hidden></p>
+                    <table class="data-table" id="whois-table" hidden>
+                        <tbody>
+                            <tr><th>Registrar</th><td id="res-registrar"></td></tr>
+                            <tr><th>Creation Date</th><td id="res-creation-date"></td></tr>
+                            <tr><th>Expiry Date</th><td id="res-expiry-date"></td></tr>
+                            <tr><th>Organization</th><td id="res-organization"></td></tr>
+                            <tr><th>Country</th><td id="res-country"></td></tr>
+                            <tr>
+                                <th>Name Servers</th>
+                                <td><ul class="ns-list" id="res-name-servers"></ul></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" id="ssl-card">
+                <div class="card-header">
+                    <h2>SSL Certificate</h2>
+                    <span class="status-badge" id="ssl-status-badge"></span>
+                </div>
+                <div class="card-body">
+                    <p class="card-message" id="ssl-message" hidden></p>
+                    <table class="data-table" id="ssl-table" hidden>
+                        <tbody>
+                            <tr><th>Common Name</th><td id="res-ssl-common-name"></td></tr>
+                            <tr><th>Issuer</th><td id="res-ssl-issuer"></td></tr>
+                            <tr><th>Valid From</th><td id="res-ssl-valid-from"></td></tr>
+                            <tr><th>Valid Until</th><td id="res-ssl-valid-until"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" id="email-card">
+                <div class="card-header">
+                    <h2>Emails</h2>
+                    <span class="status-badge" id="email-status-badge"></span>
+                </div>
+                <div class="card-body">
+                    <p class="card-message" id="email-message" hidden></p>
+                    <p class="count-line" id="email-count-line" hidden></p>
+                    <ul class="result-list" id="res-emails"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column -->
+        <div class="dashboard-col">
+            <div class="card" id="dns-card">
+                <div class="card-header">
+                    <h2>DNS Records</h2>
+                    <span class="status-badge" id="dns-status-badge"></span>
+                </div>
+                <div class="card-body">
+                    <p class="card-message" id="dns-message" hidden></p>
+                    <table class="data-table" id="dns-table" hidden>
+                        <tbody>
+                            <tr><th>A</th><td id="res-dns-a"></td></tr>
+                            <tr><th>AAAA</th><td id="res-dns-aaaa"></td></tr>
+                            <tr><th>MX</th><td id="res-dns-mx"></td></tr>
+                            <tr><th>TXT</th><td id="res-dns-txt"></td></tr>
+                            <tr><th>NS</th><td id="res-dns-ns"></td></tr>
+                            <tr><th>CNAME</th><td id="res-dns-cname"></td></tr>
+                            <tr><th>SOA</th><td id="res-dns-soa"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" id="shodan-card">
+                <div class="card-header">
+                    <h2>Shodan Lookup</h2>
+                    <span class="status-badge" id="shodan-status-badge"></span>
+                </div>
+                <div class="card-body">
+                    <p class="card-message" id="shodan-message" hidden></p>
+                    <table class="data-table" id="shodan-table" hidden>
+                        <tbody>
+                            <tr><th>IP</th><td id="res-shodan-ip"></td></tr>
+                            <tr><th>ISP</th><td id="res-shodan-isp"></td></tr>
+                            <tr><th>Organization</th><td id="res-shodan-organization"></td></tr>
+                            <tr><th>Open Ports</th><td id="res-shodan-open-ports"></td></tr>
+                            <tr><th>Operating System</th><td id="res-shodan-os"></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" id="social-card">
+                <div class="card-header">
+                    <h2>Social Footprint</h2>
+                    <span class="status-badge" id="social-status-badge"></span>
+                </div>
+                <div class="card-body">
+                    <p class="card-message" id="social-message" hidden></p>
+                    <div class="social-buttons" id="social-links-list" hidden>
+                        <a id="res-social-linkedin" class="social-btn" href="#" target="_blank" rel="noopener">LinkedIn</a>
+                        <a id="res-social-github" class="social-btn" href="#" target="_blank" rel="noopener">GitHub</a>
+                        <a id="res-social-twitter" class="social-btn" href="#" target="_blank" rel="noopener">Twitter</a>
+                        <a id="res-social-facebook" class="social-btn" href="#" target="_blank" rel="noopener">Facebook</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subdomains: full width -->
+        <div class="card card-full" id="subdomain-card">
+            <div class="card-header">
+                <h2>Subdomains</h2>
+                <span class="status-badge" id="subdomain-status-badge"></span>
+            </div>
+            <div class="card-body">
+                <p class="card-message" id="subdomain-message" hidden></p>
+                <p class="count-line" id="subdomain-count-line" hidden></p>
+                <ul class="result-list subdomain-list" id="res-subdomains"></ul>
+                <div class="pagination-controls" id="subdomain-pagination" hidden>
+                    <button id="subdomain-prev-btn" type="button">Previous</button>
+                    <span id="subdomain-page-indicator"></span>
+                    <button id="subdomain-next-btn" type="button">Next</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
