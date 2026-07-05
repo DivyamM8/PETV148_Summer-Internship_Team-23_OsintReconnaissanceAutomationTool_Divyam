@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: osint-recon-tool
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app

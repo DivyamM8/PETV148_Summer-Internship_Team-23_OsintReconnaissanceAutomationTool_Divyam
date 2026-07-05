@@ -578,11 +578,5 @@ def build_pdf_report(report):
         _pdf_list_section(pdf, subdomains.get("subdomains") or [], "No subdomains found.")
     pdf.ln(6)
 
-    # --- Social Footprint ---
-    _pdf_section_title(pdf, "Social Footprint")
-    if "error" in social:
-        _pdf_error(pdf, social["error"])
-    else:
-        _pdf_social_buttons(pdf, social)
 
     return bytes(pdf.output())
