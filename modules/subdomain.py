@@ -8,9 +8,11 @@ infrastructure.
 
 Primary source: crt.sh (Certificate Transparency log search).
 crt.sh is a free, community-run service that occasionally returns
-502 errors or times out under load, so requests are retried before
-falling back to two alternate passive sources: HackerTarget and
-BufferOver.
+502 errors or times out under load. On cloud deployments (e.g. Render
+running under Gunicorn), the worker process is killed after ~30
+seconds, so this module is tuned to fail fast on crt.sh and move on
+to the fallback sources — HackerTarget and BufferOver — rather than
+burning the whole request budget on retries against a single source.
 
 Flask routes must call `discover_subdomains()` from this module.
 Any technical failure detail is logged to the terminal only; callers
@@ -24,10 +26,15 @@ CRTSH_URL = "https://crt.sh/"
 HACKERTARGET_URL = "https://api.hackertarget.com/hostsearch/"
 BUFFEROVER_URL = "https://dns.bufferover.run/dns"
 
-REQUEST_TIMEOUT = 25
+# Kept short and cloud-friendly. On Render, Gunicorn kills the worker
+# after ~30s, and crt.sh's 502s/timeouts alone could previously eat
+# the whole budget before fallbacks were ever tried.
+REQUEST_TIMEOUT = 6
 REQUEST_HEADERS = {"User-Agent": "OSINT-Recon-Tool/1.0"}
 
-MAX_RETRIES = 3
+# crt.sh is retried only once (i.e. no retry, single attempt) so that
+# we fail fast and still have time left over for the fallback sources.
+MAX_RETRIES = 1
 RETRY_DELAY_SECONDS = 2
 
 
@@ -38,9 +45,9 @@ def _log(message):
 
 def _fetch_crtsh(domain):
     """
-    Query crt.sh for a domain, retrying up to MAX_RETRIES times with a
-    short delay between attempts (crt.sh frequently returns 502s or
-    times out under load).
+    Query crt.sh for a domain. Retries up to MAX_RETRIES times (fail
+    fast by default — MAX_RETRIES = 1 — so the fallback sources still
+    have time to run within the platform's request/worker timeout).
 
     Returns:
         list | None: Parsed JSON entries on success, or None if every
@@ -57,10 +64,11 @@ def _fetch_crtsh(domain):
             return response.json()
         except (requests.exceptions.RequestException, ValueError) as exc:
             _log(f"crt.sh attempt {attempt}/{MAX_RETRIES} failed for '{domain}': {exc}")
+            # Only sleep if another attempt is actually going to happen.
             if attempt < MAX_RETRIES:
                 time.sleep(RETRY_DELAY_SECONDS)
 
-    _log(f"crt.sh unavailable for '{domain}' after {MAX_RETRIES} attempts.")
+    _log(f"crt.sh unavailable for '{domain}' after {MAX_RETRIES} attempt(s).")
     return None
 
 
@@ -131,8 +139,10 @@ def _fetch_bufferover(domain):
 def discover_subdomains(domain):
     """
     Passively discover subdomains for a domain, trying crt.sh first
-    (with retries) and falling back to HackerTarget, then BufferOver,
-    if crt.sh is unavailable.
+    (fail-fast, single attempt) and, if that's unavailable, querying
+    both HackerTarget and BufferOver and merging whatever results
+    they return. This avoids returning an artificially small result
+    just because one of the two fallback sources happened to fail.
 
     Args:
         domain (str): The root domain to search (e.g. "example.com").
@@ -162,15 +172,24 @@ def discover_subdomains(domain):
         # Handled gracefully: an empty list is a valid, non-error result.
         return {"subdomains": sorted(subdomains)}
 
+    # crt.sh failed — immediately move on to the fallback sources
+    # rather than spending more time retrying it. Both fallbacks are
+    # queried and, if they succeed, their results are merged so a
+    # single failing provider doesn't shrink the final result set.
     _log(f"Falling back to HackerTarget for '{domain}'.")
-    fallback = _fetch_hackertarget(domain)
-    if fallback is not None:
-        return {"subdomains": sorted(fallback)}
+    hackertarget_result = _fetch_hackertarget(domain)
 
     _log(f"Falling back to BufferOver for '{domain}'.")
-    fallback = _fetch_bufferover(domain)
-    if fallback is not None:
-        return {"subdomains": sorted(fallback)}
+    bufferover_result = _fetch_bufferover(domain)
 
-    _log(f"All subdomain discovery sources failed for '{domain}'.")
-    return {"error": "Subdomain discovery is currently unavailable. Please try again later."}
+    if hackertarget_result is None and bufferover_result is None:
+        _log(f"All subdomain discovery sources failed for '{domain}'.")
+        return {"error": "Subdomain discovery is currently unavailable. Please try again later."}
+
+    merged = set()
+    if hackertarget_result:
+        merged |= hackertarget_result
+    if bufferover_result:
+        merged |= bufferover_result
+
+    return {"subdomains": sorted(merged)}
